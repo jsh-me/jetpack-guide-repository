@@ -76,6 +76,10 @@ class MainActivity : AppCompatActivity() {
         })
         //mainViewModel.fetchStoreInfo()
 
+        mainViewModel.loadingLiveData.observe(this, Observer { isLoading ->
+            progressBar.visibility = if(isLoading){ View.VISIBLE }
+                                    else { View.INVISIBLE }
+        })
     }
 
     override fun onCreateOptionsMenu(menu: Menu?): Boolean {

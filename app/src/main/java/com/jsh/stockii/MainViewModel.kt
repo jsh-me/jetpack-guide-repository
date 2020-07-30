@@ -15,6 +15,7 @@ import java.util.stream.Collectors
 class MainViewModel: ViewModel() {
     private val TAG: String? = MainViewModel::class.java.simpleName
     var itemLiveData = MutableLiveData<List<Store>>()
+    var loadingLiveData = MutableLiveData<Boolean>()
     lateinit var location: Location
 
 
@@ -26,11 +27,16 @@ class MainViewModel: ViewModel() {
 
 
     fun fetchStoreInfo(){
+        //loading start
+        loadingLiveData.value = true
+
         retrofitService.fetchStoreInfo(location.latitude, location.longitude)
             .enqueue(object: Callback<StoreInfo>{
             override fun onFailure(call: Call<StoreInfo>, t: Throwable) {
                 Log.e(TAG, t.localizedMessage!!)
                 itemLiveData.value = Collections.emptyList()
+                //loading finish
+                loadingLiveData.value = false
             }
 
             override fun onResponse(call: Call<StoreInfo>, response: Response<StoreInfo>) {
@@ -49,7 +55,11 @@ class MainViewModel: ViewModel() {
                     location.longitude, store.lat, store.lng, "k")
                     store.distance = distance
                 }
+                Collections.sort(items)
             }
         })
+
+        //loading finish
+        loadingLiveData.value = false
     }
 }
