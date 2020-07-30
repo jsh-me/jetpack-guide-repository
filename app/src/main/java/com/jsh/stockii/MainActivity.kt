@@ -1,11 +1,10 @@
 package com.jsh.stockii
 
+import android.graphics.Color
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.util.Log
-import android.view.LayoutInflater
-import android.view.View
-import android.view.ViewGroup
+import android.view.*
 import android.widget.TextView
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
@@ -16,6 +15,7 @@ import retrofit2.Callback
 import retrofit2.Response
 import retrofit2.Retrofit
 import retrofit2.converter.moshi.MoshiConverterFactory
+import java.util.stream.Collectors
 
 class MainActivity : AppCompatActivity() {
     val TAG = MainActivity::class.simpleName
@@ -30,7 +30,7 @@ class MainActivity : AppCompatActivity() {
             adapter = storeAdapter
             layoutManager = LinearLayoutManager(this@MainActivity)
         }
-            //testRecyclerView()
+
          Retrofit.Builder()
                 .baseUrl(Consts.baseUrl)
                 .addConverterFactory(MoshiConverterFactory.create())
@@ -44,24 +44,35 @@ class MainActivity : AppCompatActivity() {
 
                     override fun onResponse(call: Call<StoreInfo>, response: Response<StoreInfo>) {
                         val items = response.body()?.stores
+
                         items?.let {
-                            storeAdapter.updateItems(it)
+                            //null인 요소를 filtering
+                            storeAdapter.updateItems(it.stream()
+                                .filter{it.remain_stat != null}
+                                .collect(Collectors.toList()))
+                            supportActionBar?.title = "마스크 재고 있는 곳: "+ it.size
                         }
                     }
                 })
         }
 
+    override fun onCreateOptionsMenu(menu: Menu?): Boolean {
+        val inflater: MenuInflater = menuInflater
+        inflater.inflate(R.menu.main_menu, menu)
+        return true
     }
 
-    private fun testRecyclerView(){
-        val testItems = ArrayList<Store>()
-        testItems.add(Store("서울 영등포구 장양동 201-222", "","",0.0,0.0,"우리약국","","",""))
-        testItems.add(Store("서울 영등포구 장양동 201-222", "","",0.0,0.0,"우리약국","","",""))
-        testItems.add(Store("서울 영등포구 장양동 201-222", "","",0.0,0.0,"우리약국","","",""))
-        testItems.add(Store("서울 영등포구 장양동 201-222", "","",0.0,0.0,"우리약국","","",""))
-
-        StoreAdapter().updateItems(testItems)
+    override fun onOptionsItemSelected(item: MenuItem): Boolean {
+        return when(item.itemId){
+            R.id.action_refresh -> {
+                //refresh()
+                true
+            }
+            else ->
+                super.onOptionsItemSelected(item)
+        }
     }
+}
 
 class StoreAdapter: RecyclerView.Adapter<StoreAdapter.StoreViewHolder>() {
     private var _items = listOf<Store>()
@@ -75,12 +86,39 @@ class StoreAdapter: RecyclerView.Adapter<StoreAdapter.StoreViewHolder>() {
 
     override fun onBindViewHolder(holder: StoreViewHolder, position: Int) {
         val store = _items[position]
+        var colorStat = Color.GREEN
 
         holder.nameTextView.text = store.name
         holder.addrTextView.text = store.addr
         holder.distanceTextView.text = "1.0km"
-        holder.remainTextView.text = store.remain_stat
-        holder.countTextView.text = "100개 이상"
+
+        when(store.remain_stat){
+            "plenty" -> {
+                holder.countTextView.text = "100개 이상"
+                holder.remainTextView.text = "충분"
+                colorStat = Color.GREEN
+            }
+            "some" -> {
+                holder.countTextView.text = "30개 이상"
+                holder.remainTextView.text = "여유"
+                colorStat = Color.YELLOW
+            }
+            "few" -> {
+                holder.countTextView.text = "2개 이상"
+                holder.remainTextView.text = "매진 임박"
+                colorStat = Color.RED
+            }
+            "empty" -> {
+                holder.countTextView.text = "1개 이하"
+                holder.remainTextView.text = "재고 없음"
+                colorStat = Color.GRAY
+            }
+            else -> {
+                holder.countTextView.text =""
+            }
+        }
+        holder.remainTextView.setTextColor(colorStat)
+        holder.countTextView.setTextColor(colorStat)
     }
 
     inner class StoreViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
