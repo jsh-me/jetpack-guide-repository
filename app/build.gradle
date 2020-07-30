@@ -86,4 +86,7 @@ dependencies {
     implementation 'androidx.fragment:fragment-ktx:1.2.5'
 
 
+    implementation "com.google.android.gms:play-services-location:17.0.0"
+
+    implementation 'gun0912.ted:tedpermission:2.2.3'
 }

@@ -9,5 +9,6 @@ data class Store (
     var name: String,
     var remain_stat: String,
     var stock_at: String,
-    var type: String
+    var type: String,
+    var distance: Double
 )

@@ -24,7 +24,7 @@ class StoreAdapter: RecyclerView.Adapter<StoreAdapter.StoreViewHolder>() {
 
         holder.nameTextView.text = store.name
         holder.addrTextView.text = store.addr
-        holder.distanceTextView.text = "1.0km"
+        holder.distanceTextView.text = String.format("%.2fkm",store.distance)
 
         when(store.remain_stat){
             "plenty" -> {
